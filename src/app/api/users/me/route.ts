@@ -1,16 +1,15 @@
 import { getIdFromToken } from "@/helpers/getIdFromToken";
-
 import { NextRequest, NextResponse } from "next/server";
-import User from "@/models/userModel";
-import { connect } from "@/dbConfig/dbConfig";
 
-connect();
+import { prisma } from "@/db";
 
 export async function GET(request: NextRequest) {
     try {
-        console.log(request);
         const userId = getIdFromToken(request);
-        const user = await User.findOne({ _id: userId }).select("-password");
+        const user = await prisma.users.findFirst({
+            where: { id: userId },
+            select: { id: true },
+        });
         return NextResponse.json(
             { message: "User found", user },
             { status: 200 }

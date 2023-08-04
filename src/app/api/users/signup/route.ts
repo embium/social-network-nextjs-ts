@@ -1,9 +1,7 @@
-import { connect } from "@/dbConfig/dbConfig";
-import User from "@/models/userModel";
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-
-connect();
+import { sendEmail } from "@/helpers/mailer";
+import { prisma } from "@/db";
 
 export async function POST(request: NextRequest) {
     try {
@@ -11,7 +9,7 @@ export async function POST(request: NextRequest) {
         const { email, username, password } = reqBody;
 
         // Check if user already exists
-        const user = await User.findOne({ email });
+        const user = await prisma.users.findFirst({ where: { email: email } });
         if (user) {
             return NextResponse.json(
                 { error: "User already exists" },
@@ -23,18 +21,22 @@ export async function POST(request: NextRequest) {
         const salt = await bcryptjs.genSalt(10);
         const hashedPassword = await bcryptjs.hash(password, salt);
 
-        const newUser = new User({
-            username,
-            email,
-            password: hashedPassword,
+        const newUser = await prisma.users.create({
+            data: {
+                username: username,
+                email: email,
+                password: hashedPassword,
+            },
         });
 
-        const savedUser = await newUser.save();
+        // Send verificatione email
+
+        await sendEmail({ email, emailType: "VERIFY", userId: newUser.id });
 
         return NextResponse.json({
             message: "User created successfully",
             success: true,
-            savedUser,
+            newUser,
         });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
