@@ -1,10 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import React from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 interface IUser {
     email: string;
@@ -23,7 +23,7 @@ export default function LoginPage() {
     const onLogin = async () => {
         try {
             setLoading(true);
-            const response = await axios.post("/api/users/login", user);
+            await axios.post("/api/users/login", user);
             toast.success("Login success");
             router.push("/profile");
         } catch (error: any) {
