@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db";
+import bcryptjs from "bcryptjs";
 
 export async function POST(request: NextRequest) {
     try {
         const reqBody = await request.json();
-        console.log(reqBody);
         const token = reqBody.token;
-        console.log(token);
+        const password = reqBody.password;
 
         const user = await prisma.users.findFirst({
             where: {
-                verifyToken: token,
-                verifyTokenExpiry: { gt: new Date(Date.now()) },
+                forgotPasswordToken: token,
+                forgotPasswordTokenExpiry: { gt: new Date(Date.now()) },
             },
         });
 
@@ -22,17 +22,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const salt = await bcryptjs.genSalt(10);
+        const hashedPassword = await bcryptjs.hash(password, salt);
+
         await prisma.users.update({
             where: { id: user.id },
             data: {
-                isVerified: true,
-                verifyToken: null,
-                verifyTokenExpiry: null,
+                password: hashedPassword,
+                forgotPasswordToken: null,
+                forgotPasswordTokenExpiry: null,
             },
         });
 
         return NextResponse.json(
-            { message: "Email verified successfully" },
+            { message: "Password changed successfully" },
             { status: 200 }
         );
     } catch (error: any) {

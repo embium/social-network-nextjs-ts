@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         const userId = getIdFromToken(request);
         const user = await prisma.users.findFirst({
             where: { id: userId },
-            select: { id: true },
+            select: { username: true },
         });
         return NextResponse.json(
             { message: "User found", user },

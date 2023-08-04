@@ -25,7 +25,7 @@ export default function VerifyEmail() {
     React.useEffect(() => {
         const verifyUserEmail = async () => {
             try {
-                await axios.post("/api/users/verify", { token });
+                await axios.post("/api/users/verifyemail", { token });
                 setVerified(true);
             } catch (error: any) {
                 setError(true);
@@ -34,7 +34,6 @@ export default function VerifyEmail() {
         };
 
         if (token) {
-            console.log(token);
             verifyUserEmail();
         }
     }, [token]);
